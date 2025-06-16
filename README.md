@@ -46,10 +46,9 @@ These can be rewritten as a first-order system:
 
 ## Implementation Steps
 
-1. Verify the Euler-Lagrange equations using symbolic computation in Julia
-2. Create a function that converts a piecewise linear function to its smooth approximation using tanh functions
-3. Find the local minimum of $\ell(x)$ near $x_2$ and denote it as $y$
-4. Implement the numerical solver for the boundary value problem with the conditions:
+1. Create a function that converts a piecewise linear function to its smooth approximation using tanh functions
+2. Find the local minimum of $\ell(x)$ near $x_2$ and denote it as $y$
+3. Implement the numerical solver for the boundary value problem with the conditions:
    - $x(0) = 0$
    - $\dot{x}(T) = 0$
    - $\dot{\rho}(T) = 1$
@@ -68,9 +67,8 @@ After smoothing, we apply a shift to ensure that $\ell(0)=0$ is satisfied exactl
 ## Julia Implementation
 
 The implementation will involve:
-1. Symbolic verification of the Euler-Lagrange equations using Symbolics.jl
-2. Function to convert piecewise linear functions to smooth approximations
-3. Implementation of the system functions and boundary conditions for the BVP
-4. Setup of the semi-explicit DAE using a mass matrix formulation
-5. Numerical solution using Ascher methods from BoundaryValueDiffEq.jl
-6. Visualization and analysis of the instanton solutions
+1. Function to convert piecewise linear functions to smooth approximations
+2. Implementation of the system functions and boundary conditions for the BVP
+3. Setup of the semi-explicit DAE using a mass matrix formulation
+4. Numerical solution using Ascher methods from BoundaryValueDiffEq.jl
+5. Visualization and analysis of the instanton solutions

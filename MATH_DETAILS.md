@@ -145,6 +145,54 @@ We use the SciML's BoundaryValueDiffEq.jl package with specialized solvers for d
 4. Set up the BVProblem with this function, initial guess, and time span
 5. Solve using an appropriate Ascher method with parameter settings
 
+### Initial Guess Construction
+
+For DAE boundary value problems, providing a good initial guess is crucial for convergence. We construct our initial guess by combining a circular arc with a linear trajectory, assuming $\pi y/2 \ll T$:
+
+1. For the first phase ($0 \leq t \leq \pi y/2$):
+   - $(x(t), \rho(t))$ follows a quarter-circle of radius $y$ from $(0, \rho_0)$ to $(y, \rho_0 + y)$
+   
+   $$x_{\text{guess}}(t) = y \sin\left(\frac{t}{y}\right)$$
+   $$\rho_{\text{guess}}(t) = \rho_0 + y \left(1 - \cos\left(\frac{t}{y}\right)\right)$$
+   
+   where $\rho_0$ is a small positive value (e.g., 0.01) to avoid starting exactly at zero
+
+2. For the second phase ($\pi y/2 < t \leq T$):
+   - Linear trajectory from $(y, \rho_0 + y)$ to $(y, T - \pi y/2)$
+   
+   $$x_{\text{guess}}(t) = y$$
+   $$\rho_{\text{guess}}(t) = \rho_0 + y + \frac{T - \pi y/2 - (\rho_0 + y)}{T - \pi y/2} \cdot (t - \pi y/2)$$
+
+3. For velocity components:
+   - During the circular phase, velocity follows the tangent to the circle:
+   
+   $$v_x(t) = \cos\left(\frac{t}{y}\right)$$
+   $$v_{\rho}(t) = \sin\left(\frac{t}{y}\right)$$
+   
+   - During the linear phase:
+   
+   $$v_x(t) = 0$$
+   $$v_{\rho}(t) = 1$$
+   
+   This naturally satisfies the constraint $v_x^2 + v_{\rho}^2 = 1$ and the boundary conditions $\dot{x}(T) = 0$ and $\dot{\rho}(T) = 1$.
+
+4. For $\lambda(t)$ and $\dot{\lambda}(t)$:
+   - We use a constant positive value for $\lambda$ and set $\dot{\lambda}$ to zero:
+   
+   $$\lambda_{\text{guess}}(t) = 1$$
+   $$\dot{\lambda}_{\text{guess}}(t) = 0$$
+   
+   This simplification is reasonable since the exact value of $\lambda$ will be determined by the solver to satisfy the constraints.
+
+This initial guess has several advantages:
+- It exactly satisfies the unit speed constraint $\dot{x}^2 + \dot{\rho}^2 = 1$ throughout the trajectory
+- The boundary conditions $x(0) = 0$, $x(T) = y$, $\dot{x}(T) = 0$, and $\dot{\rho}(T) = 1$ are precisely met
+- The path is physically meaningful, representing a natural transition from the initial to the final state
+- The continuous derivatives at the junction between the circle and line segments ensure smoothness
+- The constant $\lambda$ value avoids introducing unnecessary complexity into the initial guess
+
+This careful construction of the initial guess significantly improves the chances of convergence for the boundary value problem solver.
+
 ### Action Calculation
 
 After solving the boundary value problem, we calculate the action by numerically integrating the Lagrangian over the trajectory:
