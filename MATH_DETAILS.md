@@ -30,6 +30,8 @@ Where:
 - $y_1 > y_2 > 0$
 - $y_3 > y_2$ (ensuring the function is increasing for $x > x_2$)
 
+Additionally, the minimum of the function near $x_2$ (which we denote as $y$) plays a crucial role in our boundary conditions. This minimum exists because $\ell_0(x)$ decreases as $x$ approaches $x_2$ from the left, and increases as $x$ moves beyond $x_2$. The exact location of this minimum in the smoothed function will be slightly different from $x_2$ and depends on the smoothing parameter $\sigma$.
+
 ### Smoothing Technique
 
 To convert the piecewise linear function into a smooth function, we use hyperbolic tangent (tanh) functions as weight functions for the transitions between segments:
@@ -130,6 +132,17 @@ The system functions $\mathbf{f}$ implement our first-order equations:
 4. $f_4 = \frac{\ell(x)}{2\lambda} - \frac{\dot{\lambda}}{\lambda}v_{\rho}$
 5. $f_5 = \dot{\lambda}$
 6. $f_6 = v_x^2 + v_{\rho}^2 - 1$ (algebraic constraint)
+
+### Boundary Value Problem Formulation
+
+Before solving the system, it's important to understand why we've chosen these specific boundary conditions:
+
+- $x(0) = 0$: The instanton starts at the origin
+- $x(T) = y$: The instanton ends at the local minimum of $\ell(x)$ near $x_2$
+- $\dot{x}(T) = 0$: The instanton comes to rest in the $x$-direction at the minimum
+- $\dot{\rho}(T) = 1$: The instanton continues moving in the $\rho$-direction with unit speed
+
+These conditions represent a tunneling event from the origin to the local minimum of the potential. The large value of $T$ ensures that the system has enough "time" to complete the transition, and the constraint $\dot{x}^2 + \dot{\rho}^2 = 1$ ensures that the trajectory is parametrized by arc length.
 
 ### Solving the BVP
 
