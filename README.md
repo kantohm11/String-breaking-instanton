@@ -72,3 +72,45 @@ The implementation will involve:
 3. Setup of the semi-explicit DAE using a mass matrix formulation
 4. Numerical solution using Ascher methods from BoundaryValueDiffEq.jl
 5. Visualization and analysis of the instanton solutions
+
+## Project Setup
+
+### Dependencies
+
+This project uses the following Julia packages:
+
+- **DifferentialEquations**: Core package for solving differential equations
+- **BoundaryValueDiffEq**: Specialized solvers for boundary value problems
+- **ModelingToolkit**: Symbolic-numeric modeling framework
+- **Optimization** and **OptimizationOptimJL**: Packages for optimization problems
+- **Plots**: Visualization and plotting
+
+### Getting Started
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/String-breaking-instanton.git
+   cd String-breaking-instanton
+   ```
+
+2. Start Julia and activate the project environment:
+   ```julia
+   using Pkg
+   Pkg.activate(".")
+   Pkg.instantiate()  # This will install all dependencies
+   ```
+
+3. Run the test script to verify all dependencies are working:
+   ```bash
+   julia test_setup.jl
+   ```
+
+### Project Structure
+
+- `Project.toml`: Julia project file with dependencies
+- `test_setup.jl`: Script to verify the environment setup
+- `MATH_DETAILS.md`: Mathematical details of the model
+- Future implementation files will include:
+  - `smoothpiecewise.jl`: Implementation of smooth piecewise functions
+  - `instanton_model.jl`: Definition of the instanton model and BVP
+  - `solve_instanton.jl`: Main script to solve the instanton problem

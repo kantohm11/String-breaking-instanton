@@ -14,6 +14,59 @@ Where:
 - $\ell(x)$ is a smooth potential function
 - $T$ is a large cutoff parameter
 
+### The `zeta` Parameter and Boundary Condition Format in DAE Solvers
+
+When using the Ascher4 solver for differential-algebraic equation (DAE) boundary value problems, the `zeta` parameter plays a crucial role in specifying where each boundary condition is imposed. Understanding this parameter is essential for correctly formulating boundary value problems:
+
+1. **Purpose of the `zeta` Parameter**:
+   - The `zeta` parameter is an array that indicates the spatial location where each boundary condition is enforced
+   - Each element corresponds to one boundary condition in the same order as defined in the boundary condition function
+   - Values in the `zeta` array represent the time point where the condition applies:
+     - `0.0` indicates that the condition is imposed at the left boundary (t = 0)
+     - `T` (the endpoint of the time domain) indicates that the condition is imposed at the right boundary (t = T)
+
+2. **Boundary Condition Function Structure**:
+   - Unlike in regular ODEs, the boundary condition function for DAE-BVPs does not explicitly reference the time points
+   - Instead, it defines all boundary conditions without specifying where they are imposed:
+   
+   ```julia
+   function bc!(res, u, p, t)
+       res[1] = u[1]          # First condition 
+       res[2] = u[3] - 1      # Second condition
+       res[3] = u[2] - sin(1) # Third condition
+   end
+   ```
+   
+   - The `zeta` parameter then tells the solver where each of these conditions applies:
+   
+   ```julia
+   zeta = [0.0, 0.0, 1.0]  # First two at t=0, third at t=T
+   ```
+
+3. **Example from Our Implementation**:
+   - In our instanton system, we define four boundary conditions:
+   
+   ```julia
+   function bc_instanton!(res, u, p, t)
+       res[1] = u[1]          # x = 0
+       res[2] = u[1] - x_min  # x = x_min
+       res[3] = u[2]          # v_x = 0
+       res[4] = u[4] - 1      # v_ρ = 1
+   end
+   ```
+   
+   - With a corresponding `zeta` parameter:
+   
+   ```julia
+   zeta = [0.0, T, T, T]  # First at t=0, others at t=T
+   ```
+   
+   - This means:
+     - The condition `u[1] = 0` (x = 0) is imposed at t = 0
+     - The conditions `u[1] = x_min` (x = x_min), `u[2] = 0` (v_x = 0), and `u[4] = 1` (v_ρ = 1) are all imposed at t = T
+
+This approach separates the definition of what the boundary conditions are from where they are applied, providing flexibility in formulating complex boundary value problems. It's particularly important for DAE systems where the nature of the constraints can be complex, and different conditions may need to be enforced at different boundaries.
+
 ### Potential Function $\ell(x)$
 
 The potential function $\ell(x)$ is a smooth approximation of a piecewise linear function $\ell_0(x)$ with three segments:
@@ -236,3 +289,20 @@ The solution provides several key insights:
 1. The instanton trajectory $x(t)$ showing the transition between the initial and final states
 2. The behavior of Lagrange multipliers $\rho(t)$ and $\lambda(t)$ during the transition
 3. The total action of the instanton, which gives the tunneling amplitude
+
+## Numerical Implementation Note
+
+### Discretized Initial Guess for DAE Boundary Value Problems
+
+When solving differential-algebraic equation (DAE) boundary value problems in Julia's SciML ecosystem, it's important to note that function-based initial guesses cannot be used directly with DAE solvers like Ascher4. This is due to a fundamental limitation: the solver needs to call `zero()` on the initial guess to initialize internal data structures, but there's no defined method for `zero()` on function objects.
+
+The solution is to convert the function-based initial guess to a discretized mesh-based initial condition:
+
+1. Define the initial guess as a function `initial_guess(t)` that returns a state vector
+2. Create a mesh of time points spanning the solution domain `t_mesh = range(tspan[1], tspan[2], length=n_points)`
+3. Evaluate the function at each mesh point to create an array `u0_mesh = [initial_guess(t) for t in t_mesh]`
+4. Pass this array to the BVProblem constructor instead of the function
+
+This approach allows us to maintain the benefits of a well-designed initial guess function while working within the constraints of the DAE solver framework. In our implementation, we use a mesh with approximately `T/dt` points, where `T` is the time span and `dt` is the desired step size.
+
+Testing has confirmed that while function-based initial guesses work with regular BVP solvers (like MIRK4), they fail with DAE solvers (both MIRK4 and Ascher4), but discretized mesh-based initial guesses work successfully with the Ascher4 solver for DAE boundary value problems.
